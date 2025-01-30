@@ -359,6 +359,21 @@ namespace slskd
         }
 
         /// <summary>
+        ///     Converts a fully qualified remote filename to a local filename based in the provided
+        ///     <paramref name="baseDirectory"/>, swapping directory characters for those specific to the local OS, removing any
+        ///     characters that are invalid for the local OS, making the path relative to the remote store (including the
+        ///     filename and the parent folder) and including the transfer's username as the 'main' directory.
+        /// </summary>
+        /// <param name="remoteFilename">The fully qualified remote filename to convert.</param>
+        /// <param name="baseDirectory">The base directory for the local filename.</param>
+        /// <param name="username">The transfer's username.</param>
+        /// <returns>The converted filename.</returns>
+        public static string ToLocalCompleteFilename(this string remoteFilename, string baseDirectory, string username)
+        {
+            return Path.Combine(baseDirectory, remoteFilename.ToLocalRelativeFullFilename(username));
+        }
+
+        /// <summary>
         ///     Converts the given path to the normalized format (normalizes path separators to backslashes).
         /// </summary>
         /// <remarks>
@@ -429,6 +444,43 @@ namespace slskd
             var directory = parts.Reverse().Skip(1).Take(1).Single().ReplaceInvalidFileNameCharacters();
 
             return Path.Combine(directory, file);
+        }
+
+        /// <summary>
+        ///     Converts a fully qualified remote filename to a local filename, swapping directory characters for those specific
+        ///     to the local OS, removing any characters that are invalid for the local OS, making the path relative to the
+        ///     remote store (including the filename and the parent folder) and including the transfer's username as the 'main'
+        ///     directory.
+        /// </summary>
+        /// <param name="remoteFilename">The fully qualified remote filename to convert.</param>
+        /// <param name="username">The transfer's username.</param>
+        /// <returns>The converted filename.</returns>
+        public static string ToLocalRelativeFullFilename(this string remoteFilename, string username)
+        {
+            if (string.IsNullOrWhiteSpace(remoteFilename))
+            {
+                throw new ArgumentException($"Invalid remote filename; expected a non-whitespace value, received '{remoteFilename}'", nameof(remoteFilename));
+            }
+
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentException($"Invalid username; expected a non-whitespace value, received '{username}'",
+                    nameof(username));
+            }
+
+            // normalize path separators and combine the username
+            var localizedRemoteFilename =
+                Path.Combine(username, remoteFilename.LocalizePath());
+
+            // sanitize each part of the directory
+            var sanitizedParts =
+                localizedRemoteFilename
+                    .Split(Path.DirectorySeparatorChar)
+                    .Select(p => p.ReplaceInvalidFileNameCharacters())
+                    .ToArray();
+
+            // combine each part again once sanitized
+            return Path.Combine(sanitizedParts);
         }
 
         /// <summary>

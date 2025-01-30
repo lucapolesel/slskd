@@ -711,6 +711,14 @@ namespace slskd
             [DirectoryExists(ensureWriteable: true)]
             [RequiresRestart]
             public string Downloads { get; init; } = Program.DefaultDownloadsDirectory;
+
+            /// <summary>
+            ///     Gets if we have to save the files in a more structured folder.
+            /// </summary>
+            [Argument(default, "downloads-full-user-path")]
+            [EnvironmentVariable("DOWNLOADS_FULL_USER_PATH")]
+            [Description("if files have to be saved in a more structure path like: username/full/path")]
+            public bool DownloadsFullUserPath { get; init; } = false;
         }
 
         /// <summary>

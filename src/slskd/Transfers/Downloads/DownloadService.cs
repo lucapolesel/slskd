@@ -321,6 +321,13 @@ namespace slskd.Transfers.Downloads
 
                                 var destinationDirectory = System.IO.Path.GetDirectoryName(file.Filename.ToLocalFilename(baseDirectory: OptionsMonitor.CurrentValue.Directories.Downloads));
 
+                                // in case the user wants a more structured path
+                                // this can be useful to some plugins that may request files from multiple responses as a single release
+                                if (OptionsMonitor.CurrentValue.Directories.DownloadsFullUserPath)
+                                {
+                                    destinationDirectory = System.IO.Path.GetDirectoryName(file.Filename.ToLocalCompleteFilename(baseDirectory: OptionsMonitor.CurrentValue.Directories.Downloads, transfer.Filename));
+                                }
+
                                 var finalFilename = Files.MoveFile(
                                     sourceFilename: file.Filename.ToLocalFilename(baseDirectory: OptionsMonitor.CurrentValue.Directories.Incomplete),
                                     destinationDirectory: destinationDirectory,
